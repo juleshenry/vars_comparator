@@ -7,9 +7,9 @@
 # 	sys.stdout = old_stdout
 # 	return redirected_output.getvalue()
 import subprocess
-def obtain_std_out(code:str)->str:
-	codeproc = subprocess.Popen(code, stdout=subprocess.PIPE)
-	return(codeproc.stdout.read())
+def obtain_std_out(code_path:str)->str:
+	codeproc = subprocess.run(['python3',f'{code_path}'], capture_output=True)
+	return str(dir(codeproc))
 
 STUB_VARS_GET = ';print("###",vars()'
 print(obtain_std_out('./a.py'))
