@@ -1,11 +1,16 @@
-import subprocess, datetime, os
+import subprocess, datetime, os,json,ast
 
-STUB_VARS_GET = f'\nprint("{str(datetime.datetime.now())}",vars())'
+def yield_vars_stub():
+	class VS:
+		def __init__(s):
+			s.unique_id = '$$$' #str(datetime.datetime.now())
+			s.stub = f'\nprint("{s.unique_id}",vars())'
+	return VS()
 
 
 def add_vars_stub(code_path: str) -> None:
     with open(code_path, "a") as cp:
-        cp.write(STUB_VARS_GET)
+        cp.write(yield_vars_stub().stub)
 
 
 def rm_vars_stub(code_path: str) -> None:
@@ -29,16 +34,18 @@ def rm_vars_stub(code_path: str) -> None:
 def obtain_std_out(code_path: str) -> str:
     add_vars_stub(code_path)
     codeproc = subprocess.run(["python3", f"{code_path}"], capture_output=True)
-    print(dir(codeproc))
-    print(codeproc.stdout)
-    # out = codeproc.communicate()[0]
-    # print(out)
-    return str(codeproc)
+    rm_vars_stub(code_path)
+    return codeproc
 
 
 if __name__ == "__main__":
-    rm_vars_stub("./a.py")
-# print(obtain_std_out('./a.py'))
+	x = obtain_std_out('./a.py')
+	# SUPER BRITTLE
+	y = str(x.stdout).split('$$$')[1][1:-3]
+	print(y)
+	y = ast.literal_eval(y)
+	print(y)
+
 # with open('a.py') as a_file, open('b.py') as b:
 # 	a_code = str(a_file.read())
 # 	std_out = obtain_std_out(a_code+STUB_VARS_GET)
